@@ -21,8 +21,8 @@
         android:layout_alignParentBottom="true"
         android:layout_alignParentRight="true"
         android:layout_alignParentEnd="true"
-        android:text="Enter your command..."
         android:textAlignment="viewStart"
         android:textAllCaps="false"
-        android:gravity="top" />
+        android:hint="@string/leaPrompt"
+        android:gravity="start" />
 </RelativeLayout>

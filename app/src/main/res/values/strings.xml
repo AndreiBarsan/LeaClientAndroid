@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">LeaClient</string>
     <string name="action_settings">Settings</string>
+    <string name="leaPrompt">Enter your command…</string>
 </resources>
