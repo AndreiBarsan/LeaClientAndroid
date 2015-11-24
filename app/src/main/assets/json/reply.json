@@ -1,0 +1,47 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "id": "https://github.com/NorfairKing/lea/blob/master/reply.json",
+  "title": "reply",
+  "description": "A reply from a Lea server",
+  "type": "object",
+  "oneOf": [
+    {
+      "properties": {
+        "reply_type": {
+          "type": "string",
+          "enum": [
+            "done"
+          ]
+        }
+      }
+    },
+    {
+      "properties": {
+        "reply_type": {
+          "type": "string",
+          "enum": [
+            "send_more"
+          ]
+        }
+      }
+    },
+    {
+      "properties": {
+        "reply_type": {
+          "type": "string",
+          "enum": [
+            "output"
+          ]
+        },
+        "output_str": {
+          "description": "string to output",
+          "type": "string"
+        },
+        "output_delay": {
+          "description": "delay between outputting each letter",
+          "type": "number"
+        }
+      }
+    }
+  ]
+}

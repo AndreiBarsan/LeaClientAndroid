@@ -1,0 +1,47 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "id": "https://github.com/NorfairKing/lea/blob/master/request.json",
+  "title": "request",
+  "description": "A request to a Lea server",
+  "type": "object",
+  "oneOf": [
+    {
+      "properties": {
+        "request_type": {
+          "type": "string",
+          "enum": [
+            "initial"
+          ]
+        },
+        "initial_args": {
+          "description": "The initial arguments to invoke a Lea module.",
+          "type": "string"
+        }
+      }
+    },
+    {
+      "properties": {
+        "request_type": {
+          "type": "string",
+          "enum": [
+            "more"
+          ]
+        },
+        "more_args": {
+          "description": "More arguments as input",
+          "type": "string"
+        }
+      }
+    },
+    {
+      "properties": {
+        "request_type": {
+          "type": "string",
+          "enum": [
+            "go_on"
+          ]
+        }
+      }
+    }
+  ]
+}
