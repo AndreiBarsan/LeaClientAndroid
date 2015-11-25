@@ -10,6 +10,8 @@ import android.util.Log;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.BufferedInputStream;
@@ -45,14 +47,12 @@ public class MainActivity extends AppCompatActivity {
             String requestSchema = readTextAsset("json/request.json");
             String replySchema = readTextAsset("json/reply.json");
 
-            
+
 
         } catch(IOException e) {
             e.printStackTrace();
             Log.wtf("Assets", "Could not read JSON schema(s).");
         }
-
-        Toast.makeText(getApplicationContext(), "Startup toast.", Toast.LENGTH_LONG).show();
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
@@ -61,7 +61,13 @@ public class MainActivity extends AppCompatActivity {
                 Snackbar.make(view, "This block will encode the JSON and fire it off to Lea",
                         Snackbar.LENGTH_LONG).setAction("Action", null).show();
 
-                Toast.makeText(getApplicationContext(), "I am toast.", Toast.LENGTH_SHORT).show();
+                String command = ((TextView)findViewById(R.id.commandInput)).getText().toString();
+
+                Toast.makeText(
+                    getApplicationContext(),
+                    "Command: " + command,
+                    Toast.LENGTH_SHORT
+                ).show();
             }
         });
     }
