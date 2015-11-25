@@ -24,28 +24,20 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.net.ConnectException;
 import java.net.Socket;
 import java.net.SocketException;
+import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
+import java.nio.Buffer;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class MainActivity extends AppCompatActivity {
-
-  private String readTextAsset(String path) throws IOException {
-    try (InputStream rIs = getAssets().open(path);
-         BufferedReader br = new BufferedReader(new InputStreamReader(rIs))) {
-      String content = "";
-      String buffer;
-      while (null != (buffer = br.readLine())) {
-        content += buffer;
-      }
-
-      return content;
-    }
-  }
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -55,36 +47,16 @@ public class MainActivity extends AppCompatActivity {
     setSupportActionBar(toolbar);
     getSupportActionBar().setTitle("Lea Client");
 
-    try {
-      String requestSchemaText = readTextAsset("json/request.json");
-      String replySchemaText = readTextAsset("json/reply.json");
-
-      JSONObject requestSchema = new JSONObject(requestSchemaText);
-      // Note: schema validation is probably not worth it, especially since no major libraries
-      // exist to perform it.
-      String sanityCheck = requestSchema
-        .getJSONArray("oneOf")
-        .getJSONObject(0)
-        .getJSONObject("properties")
-        .getJSONObject("request_type")
-        .getJSONArray("enum")
-        .getString(0);
-
-      String scMessage = "Sanity check: " + sanityCheck;
-      Log.d("assets", scMessage);
-      Toast.makeText(getApplicationContext(), scMessage, Toast.LENGTH_LONG)
-        .show();
-
-    } catch(JSONException e) {
-      e.printStackTrace();
-      Log.wtf("assets", "Could not parse JSON schema(s).");
-    } catch (IOException e) {
-      e.printStackTrace();
-      Log.wtf("assets", "Could not read JSON schema(s).");
-    }
-
     String dummyJsonText = nextCommandJson();
-    Log.d("derp", dummyJsonText);
+    Log.d("sanityCheck", dummyJsonText);
+
+    ExecutorService svc = Executors.newCachedThreadPool();
+    svc.submit(new Runnable() {
+      @Override
+      public void run() {
+        connectToLea();
+      }
+    });
 
     FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
     fab.setOnClickListener(new View.OnClickListener() {
@@ -130,21 +102,42 @@ public class MainActivity extends AppCompatActivity {
   // consider having Lea broadcast its address periodically; at the same time, this may not work
   // on all networks).
   private void connectToLea() {
-    String leaName = "";
+    String leaName = "172.31.184.141";
     Charset charset = StandardCharsets.UTF_8;
-    int leaPort = 1000;
+    int socketTimeoutMs = 1500;
+    int leaPort = 65432;
     try(Socket socket = new Socket(leaName, leaPort)) {
+      InputStream socketIn = socket.getInputStream();
       OutputStream socketOut = socket.getOutputStream();
-      try(OutputStreamWriter osw = new OutputStreamWriter(socketOut, charset)) {
-        String jsonString = nextCommandJson();
-        osw.write(jsonString);
+      socket.setSoTimeout(socketTimeoutMs);
+
+      try(OutputStreamWriter osw = new OutputStreamWriter(socketOut, charset);
+          InputStreamReader isr = new InputStreamReader(socketIn, charset);
+          BufferedReader bufferedReader = new BufferedReader(isr)) {
+        boolean quit = false;
+        while(!quit) {
+          String jsonString = nextCommandJson();
+          osw.write(jsonString);
+
+          JSONObject response = readJson(bufferedReader);
+          Log.d("json", "Lea's response: " + response);
+        }
       }
+    }
+    catch(ConnectException e) {
+      Log.e("network", "Could not establish connection to Lea.", e);
+    }
+    catch(SocketTimeoutException e) {
+      Log.e("network", "Timed out waiting for Lea.", e);
     }
     catch(SocketException e) {
       Log.e("network", "Received socket exception connecting to Lea.", e);
     }
     catch(UnknownHostException e) {
       Log.e("network", "Unknown host: " + leaName, e);
+    }
+    catch(JSONException e) {
+      Log.e("json", "Lea be making no sense. Could not parse JSON.", e);
     }
     catch(IOException e) {
       Log.wtf("network", "General IOException.", e);
@@ -157,5 +150,17 @@ public class MainActivity extends AppCompatActivity {
     dummyCommand.put("initial_args", "say hello");
     JSONObject command = new JSONObject(dummyCommand);
     return command.toString();
+  }
+
+  private JSONObject readJson(BufferedReader inputReader) throws IOException, JSONException {
+    String buff = "";
+    String line = null;
+    while(null != (line = inputReader.readLine())) {
+      Log.d("json", "Lea line:\t" + line);
+      buff += line;
+    }
+    Log.d("json", "Lea whole:\n" + buff);
+
+    return new JSONObject(buff);
   }
 }
