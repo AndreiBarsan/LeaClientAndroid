@@ -104,23 +104,30 @@ public class MainActivity extends AppCompatActivity {
   private void connectToLea() {
     String leaName = "172.31.184.141";
     Charset charset = StandardCharsets.UTF_8;
-    int socketTimeoutMs = 1500;
+    int socketTimeoutMs = 3000;
     int leaPort = 65432;
+    Log.d("network", "Going to connect to Lea.");
     try(Socket socket = new Socket(leaName, leaPort)) {
+      Log.d("network", "Connected to Lea!");
       InputStream socketIn = socket.getInputStream();
       OutputStream socketOut = socket.getOutputStream();
       socket.setSoTimeout(socketTimeoutMs);
 
-      try(OutputStreamWriter osw = new OutputStreamWriter(socketOut, charset);
-          InputStreamReader isr = new InputStreamReader(socketIn, charset);
-          BufferedReader bufferedReader = new BufferedReader(isr)) {
+      try(
+        InputStreamReader isr = new InputStreamReader(socketIn, charset);
+        BufferedReader bufferedReader = new BufferedReader(isr);
+        OutputStreamWriter osw = new OutputStreamWriter(socketOut, charset)
+      ) {
         boolean quit = false;
         while(!quit) {
           String jsonString = nextCommandJson();
           osw.write(jsonString);
+          Log.d("network", "Sent payload to Lea.");
+          Log.d("network", "Lea:" + socketIn.available());
 
           JSONObject response = readJson(bufferedReader);
           Log.d("json", "Lea's response: " + response);
+          quit = true;
         }
       }
     }
@@ -147,12 +154,13 @@ public class MainActivity extends AppCompatActivity {
   private String nextCommandJson() {
     Map<String, String> dummyCommand = new HashMap<>();
     dummyCommand.put("request_type", "initial");
-    dummyCommand.put("initial_args", "say hello");
+    dummyCommand.put("initial_args", "say this is a fun way to debug");
     JSONObject command = new JSONObject(dummyCommand);
     return command.toString();
   }
 
   private JSONObject readJson(BufferedReader inputReader) throws IOException, JSONException {
+    Log.d("json", "Will now read from Lea.");
     String buff = "";
     String line = null;
     while(null != (line = inputReader.readLine())) {
