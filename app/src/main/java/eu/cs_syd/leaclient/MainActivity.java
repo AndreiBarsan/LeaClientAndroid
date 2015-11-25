@@ -158,7 +158,7 @@ public class MainActivity extends AppCompatActivity {
     Map<String, String> dummyCommand = new HashMap<>();
     dummyCommand.put("request_type", "initial");
     String whatToSay = "";
-    for(int i = 0; i < 1000; ++i) {
+    for(int i = 0; i < 5; ++i) {
       whatToSay += " yo";
     }
     dummyCommand.put("initial_args", "say " + whatToSay);
@@ -170,10 +170,13 @@ public class MainActivity extends AppCompatActivity {
     Log.d("json", "Will now read from Lea.");
     String buff = "";
     String line = null;
-    while(null != (line = inputReader.readLine())) {
-      Log.d("json", "Lea line:\t" + line);
-      buff += line;
-    }
+    char[] cbuff = new char[1024];
+    inputReader.read(cbuff);
+    Log.d("json", "Read raw shit" + new String(cbuff));
+//    while(null != (line = inputReader.readLine())) {
+//      Log.d("json", "Lea line:\t" + line);
+//      buff += line;
+//    }
     Log.d("json", "Lea whole:\n" + buff);
 
     return new JSONObject(buff);
