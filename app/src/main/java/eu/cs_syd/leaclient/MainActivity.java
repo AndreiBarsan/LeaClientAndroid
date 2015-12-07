@@ -44,6 +44,8 @@ import java.util.concurrent.Executors;
 
 public class MainActivity extends AppCompatActivity {
 
+  private Lea lea;
+
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
@@ -52,16 +54,25 @@ public class MainActivity extends AppCompatActivity {
     setSupportActionBar(toolbar);
     getSupportActionBar().setTitle("Lea Client");
 
-    String dummyJsonText = nextCommandJson();
-    Log.d("sanityCheck", dummyJsonText);
+//    String dummyJsonText = nextCommandJson();
+//    Log.d("sanityCheck", dummyJsonText);
 
-    ExecutorService svc = Executors.newCachedThreadPool();
-    svc.submit(new Runnable() {
-      @Override
-      public void run() {
-        connectToLea();
-      }
-    });
+//    ExecutorService svc = Executors.newCachedThreadPool();
+//    svc.submit(new Runnable() {
+//      @Override
+//      public void run() {
+//        connectToLea();
+//      }
+//    });
+
+    try {
+      this.lea = new Lea("10.2.133.98", 65432);
+//      this.lea.sendCommand(nextCommandJson("event test"));
+    }
+    catch(Exception e) {
+      Log.wtf("Lea", e);
+    }
+
 
     FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
     fab.setOnClickListener(new View.OnClickListener() {
@@ -71,6 +82,9 @@ public class MainActivity extends AppCompatActivity {
           Snackbar.LENGTH_LONG).setAction("Action", null).show();
 
         String command = ((TextView) findViewById(R.id.commandInput)).getText().toString();
+        Log.d("Lea", "Command: " + command);
+
+        MainActivity.this.lea.sendCommand(nextCommandJson(command));
 
         Toast.makeText(
           getApplicationContext(),
@@ -103,27 +117,10 @@ public class MainActivity extends AppCompatActivity {
     return super.onOptionsItemSelected(item);
   }
 
-  static class LeaResponse {
-    public String reply_type;
-    public String output_str;
-    public String output_delay;
-  }
-
-  // There is a ton of discussions to be had about the proper way to design this (e.g. we could
-  // consider having Lea broadcast its address periodically; at the same time, this may not work
-  // on all networks).
-  private void connectToLea() {
-  }
-
-  private void commandLea(String command) {
-
-  }
-
-  private String nextCommandJson() {
+  private String nextCommandJson(String commandText) {
     Map<String, String> dummyCommand = new HashMap<>();
     dummyCommand.put("request_type", "initial");
-    String whatToSay = "sorry";
-    dummyCommand.put("initial_args", "say " + whatToSay);
+    dummyCommand.put("initial_args", commandText);
     JSONObject command = new JSONObject(dummyCommand);
     return command.toString();
   }
