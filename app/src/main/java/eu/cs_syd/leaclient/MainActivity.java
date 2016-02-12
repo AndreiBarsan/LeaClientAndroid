@@ -66,7 +66,7 @@ public class MainActivity extends AppCompatActivity {
 //    });
 
     try {
-      this.lea = new Lea("10.2.133.98", 65432);
+      this.lea = new Lea("192.168.0.11", 65432);
 //      this.lea.sendCommand(nextCommandJson("event test"));
     }
     catch(Exception e) {
